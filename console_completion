@@ -1,0 +1,86 @@
+# bash completion for the symfony2 console
+
+_sf2console()
+{
+	local cur prev app
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	app="${COMP_WORDS[0]}"
+
+	local optidx=-1
+	local cmdidx=-1
+	local i=0
+	while [[ $i -lt $COMP_CWORD ]] ; do
+
+		i=$(($i+1))
+
+		if [[ $cmdidx -eq -1 ]] && [[ ${COMP_WORDS[$i]} == -* ]]; then
+			optidx=$i
+			continue
+		fi
+
+		if [[ $cmdidx -eq -1 ]] ; then
+			cmdidx=$i
+		else
+			if [[ "${COMP_WORDS[$i]}" == ":" ]] || [[ "${COMP_WORDS[$i-1]}" == ":" ]] ; then
+				cmdidx=$i
+			fi
+		fi
+
+	done
+
+	local output=`${app} --no-ansi list | sed -n -e 's/^ \([[:alpha:]|:|-]\+\)[[:space:]]\+.\+$/\1/p'`
+	local options=$(for x in ${output}; do if [[ ${x} == -* ]]; then echo ${x}; fi done )
+	local commands=$(for x in ${output}; do if [[ ${x} != -* ]]; then echo ${x}; fi done )
+
+	if [[ ${cur} == -* ]] ; then
+
+		COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )
+		return 0
+
+	elif [[ -1 -lt $cmdidx ]] && [[ $cmdidx -lt $COMP_CWORD ]] ; then
+
+			#COMPREPLY=( $(compgen -W "$(ls ./)" -- $cur) )
+			COMPREPLY=()
+			return 0
+
+	else
+
+		local cmd=${cur}
+
+		if [[ "${cur}" == ":" ]] || [[ "${prev}" == ":" ]] ; then
+
+			local i=$((${COMP_CWORD}-1))
+			local tmp=${cur}
+			while [[ "$i" -gt 0 ]]; do
+				tmp="${COMP_WORDS[$i]}"
+				if [[ ${tmp} == -* ]]; then
+					break;
+				fi
+				cmd="$tmp$cmd"
+				i=$(($i-1))
+			done
+		fi
+
+		COMPREPLY=( $(compgen -W "${commands}" -- ${cmd}) )
+
+		if [[ "${cur}" == ":" ]] || [[ "${prev}" == ":" ]] ; then
+
+			local i=${#COMPREPLY[*]}
+			local len=${#cmd}
+			if [[ "${prev}" == ":" ]]; then
+				len=$(($len-${#cur}))
+			fi
+			while [[ $((--i)) -ge 0 ]]; do
+				COMPREPLY[$i]=${COMPREPLY[$i]:$len}
+			done
+		fi
+
+		return 0
+	fi
+}
+
+complete -F _sf2console app/console
+# complete -F _sf2console console
+
