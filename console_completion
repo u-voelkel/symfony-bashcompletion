@@ -30,7 +30,7 @@ _sf2console()
 
 	done
 
-	local output=`${app} --no-ansi list | sed -n -e 's/^ \([[:alpha:]|:|-]\+\)[[:space:]]\+.\+$/\1/p'`
+	local output=`${app} --no-ansi --raw list | sed -n -e 's/^\([[:alpha:]|:|-]\+\)[[:space:]]\+.\+$/\1/p'`
 	local options=$(for x in ${output}; do if [[ ${x} == -* ]]; then echo ${x}; fi done )
 	local commands=$(for x in ${output}; do if [[ ${x} != -* ]]; then echo ${x}; fi done )
 
