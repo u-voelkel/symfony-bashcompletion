@@ -81,6 +81,6 @@ _sf2console()
 	fi
 }
 
-complete -F _sf2console app/console
+complete -F _sf2console bin/console
 # complete -F _sf2console console
 
